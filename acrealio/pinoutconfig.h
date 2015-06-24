@@ -8,7 +8,7 @@
 #define RFID_MODULE1 1			//Rfid module used for reader1, 1:SL015M 2:RR10
 #define RFID_MODULE2 1			//Rfid module used for reader2, 1:SL015M 2:RR10
 
-#define SDVX_VOL_SENS 1        //Sensitivity for SDVX Volume buttons
+#define SDVX_VOL_SENS 0.7        //Sensitivity for SDVX Volume buttons
 
 
 //input pins for sdvx controls
@@ -69,9 +69,9 @@
 COL C  COL B  COL A
 
 */
-#define K1_A 22
+#define K1_A 26
 #define K1_B 24
-#define K1_C 26
+#define K1_C 22
 #define K1_1 28
 #define K1_2 30
 #define K1_3 32

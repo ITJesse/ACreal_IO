@@ -5,7 +5,7 @@
 //contructor
 
 Reader::Reader()
-{ 
+{
 		keypadInitDone = false;
                 new_reader = false;
 }
@@ -26,7 +26,7 @@ void Reader::init()
     keypad_old = 0x0000;
     keydown = 0x00;
     keycpt = 0x08;
-	
+
 }
 ////////////////////////
 //keypad pinout setting
@@ -42,8 +42,8 @@ void Reader::setkeypadpins(int col1, int col2, int col3, int row1, int row2, int
     rowPins[1] = row2; // ROW 3 yellow wire
     rowPins[2] = row3; // ROW 2 red wire
     rowPins[3] = row4; // ROW 1 grey wire
-	
-	
+
+
     // init Keypad pins
     for(int i=0;i<3;i++)
     {
@@ -56,7 +56,7 @@ void Reader::setkeypadpins(int col1, int col2, int col3, int row1, int row2, int
         pinMode(rowPins[i], INPUT);
         digitalWrite(rowPins[i], HIGH);
     }
-	
+
 	keypadInitDone = true;
 }
 
@@ -83,8 +83,8 @@ void Reader::readKeypad()
 {
 	if(!keypadInitDone)
 		return;
-		
-		
+
+
     keypad = 0x00;
     for(int i=0;i<3;i++)//for each collumn
     {
@@ -98,16 +98,19 @@ void Reader::readKeypad()
         }
         pinMode(colPins[i], INPUT); // after reading collumn put it back to high impedance
     }
-  
-  //simulate card with unused key
-    // if(keypad & 0x0100) // if unused key is pressed
-      // card = true;
-    // else
-    // {
-      // card = false;
-    // }
 
-  
+  //simulate card with unused key
+    if(keypad & 0x0100)
+	{ // if unused key is pressed
+        rfmodule->setCardPresent();
+	}
+
+	// if(keypad & 0x0010)
+	// { // if unused key is pressed
+    //     rfmodule->setCardPresent();
+	// }
+
+
 }
 
 //
@@ -136,10 +139,10 @@ void Reader::getStatus(byte* buf)
     {
         keydown = 0x00;
     }
-  
+
     keypad_old = keypad;
-  
-  
+
+
     // set status in buffer
 
     if(holdcard) //when simulating card holding, use stored uid
@@ -158,15 +161,15 @@ void Reader::getStatus(byte* buf)
           }
         }
     }
-      
-      
-      
-      
-      
+
+
+
+
+
     //card presence flags (different behaviour on old and new readers)
     buf[0] = 0x04; // card presence (1 or 4 :no card, 2 :card)
-    buf[1] = 0x00; //sensors for old readers (front 0x10, back 0x20) or card type for new readers (0 : iso15696 1:felica) 
-    
+    buf[1] = 0x00; //sensors for old readers (front 0x10, back 0x20) or card type for new readers (0 : iso15696 1:felica)
+
     if(new_reader)
     {
           if(rfmodule->isCardPresent())
@@ -178,18 +181,18 @@ void Reader::getStatus(byte* buf)
           {
             buf[0]=0x04;
           }
-            
+
     }
     else
     {
-      
+
       // old readers sensors emulation
       if(acceptcard && rfmodule->isCardPresent() == 1)//if reader is accepting cards and a card is detected, simulate old reader holding card
       {
         holdcard = true; //until card is ejected, we'll ignore new cards and simulate this card being hold in the reader
         rfmodule->getUID(uid); // copy the current card uid
-      } 
-      
+      }
+
       if(holdcard) //when holding card, both sensors are on and card is present
       {
         buf[0] = 0x02;
@@ -206,11 +209,11 @@ void Reader::getStatus(byte* buf)
           buf[0] = 0x01;
         }
       }
-    
 
-      
-    } 
-      
+
+
+    }
+
 
 
     buf[10] = 0x00;
@@ -219,19 +222,19 @@ void Reader::getStatus(byte* buf)
     buf[13] = 0x00;
     buf[14] = keypad >> 8;
     buf[15] = keypad;
-  
+
 }
 
 
 
 short Reader::processRequest(byte* request, byte* answer)
-{  
+{
   answer[0] = request[0] | 0x80;        // reader id
   answer[1] = request[1];               //  ?
   answer[2] = request[2];               // command
   answer[3] = request[3];               // paquet id
   answer[4] = 0;                        // data length
- 
+
   switch (answer[2])                   // switch on the command
   {
     //
@@ -248,33 +251,33 @@ short Reader::processRequest(byte* request, byte* answer)
     case 0x16:
     case 0x20:
     case 0x30:
-    
+
     //re-init (if game is changed)
     new_reader = false;
-    
+
       answer[4] = 1;
       answer[5] = 0x00;
       break;
-      
+
     //
     // read card uid (old readers)
     case 0x31:
-    
+
     rfmodule->read();
-    
-    
+
+
       answer[4] = 0x10;    // 16 bytes of data
       getStatus(answer+5);
       answer[5] = 0x01;
-      
-              
+
+
     break;
     //
     // set action (old readers) return same as 0x34
     case 0x35:
       switch(request[6])
       {
-        case 0x00: 
+        case 0x00:
           acceptcard = false;
           break;
         case 0x11:                     // accept card mode
@@ -282,7 +285,7 @@ short Reader::processRequest(byte* request, byte* answer)
           break;
         case 0x12:                     // eject card
           holdcard = false;
-          acceptcard = false; 
+          acceptcard = false;
           break;
       }
 
@@ -292,25 +295,25 @@ short Reader::processRequest(byte* request, byte* answer)
     // get status (all except pop'n music new readers)
     case 0x34:
       answer[4] = 0x10;               // 16 bytes of data
-      
+
       if(!new_reader) //when simulating old slotted readers, rfid need to be read continously to detect card (since games using old readers only send reading command when sensors are activated)
-        rfmodule->read();   
-    
-      
+        rfmodule->read();
+
+
       getStatus(answer+5);
-      
-      
+
+
 
       break;
-      
-      
-      
+
+
+
     // sleep mode
     case 0x3A:
-      answer[4] = 0x01;              
+      answer[4] = 0x01;
       answer[5] = 0x00;
-      
-      
+
+
 
     break;
 
@@ -329,7 +332,7 @@ short Reader::processRequest(byte* request, byte* answer)
               unsigned long mykey = ((unsigned long) answer[5]) <<24 | ((unsigned long) answer[6]) <<16 | ((unsigned long) answer[7]) <<8 | (unsigned long) answer[8];
 
               crypt.setKeys(reckey,mykey);
-              
+
       }
       break;
 
@@ -337,9 +340,9 @@ short Reader::processRequest(byte* request, byte* answer)
     // Rfid read cards UID (for new wave pass readers)
     case 0x61:
     new_reader = true; //only new readers issue this command
-    
-    rfmodule->read();    
-      
+
+    rfmodule->read();
+
     // for pop'n music and DDR, should not return any data, for iidx and sdvx, should return one byte of data with value 0x01 and for jubeat, should return something like a full status  (0x31 like)   ... wtf konami
      switch(cmd61)
      {
@@ -355,23 +358,23 @@ short Reader::processRequest(byte* request, byte* answer)
       default:
         answer[4] = 0;
      }
-     
-     
+
+
       break;
-        
+
     //
     // get status (for pop'n new wavepass readers)
     case 0x64:
       if(request[4] == 1)
       {
           getStatus(answer+5);
-          
-          
+
+
           //append CRC
           unsigned int CRC = crypt.CRCCCITT(answer+5,16);
           answer[21] = (unsigned char) (CRC >>8) ;
           answer[22] = (unsigned char) CRC  ;
-      
+
           crypt.encrypt(answer+5,18);
           answer[4]=18;
       }

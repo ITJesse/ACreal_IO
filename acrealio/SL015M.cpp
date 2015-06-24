@@ -55,6 +55,19 @@ boolean SL015M::isCardPresent()
 	return card;
 }
 
+void SL015M::setCardPresent()
+{
+    uid[0] = 0xE0;
+    uid[1] = 0x04;
+    uid[2] = 0x01;
+    uid[3] = 0x00;
+    uid[4] = 0x3C;
+    uid[5] = 0x94;
+    uid[6] = 0x78;
+    uid[7] = 0xFF;
+	card = 1;
+}
+
 void SL015M::read()
 {
   readcmd=true;
