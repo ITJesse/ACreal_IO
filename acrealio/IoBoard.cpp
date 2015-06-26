@@ -7,21 +7,21 @@ byte lightPin[] = {LT_START, LT_A, LT_B, LT_C, LT_D, LT_FXL, LT_FXR};
 IoBoard::IoBoard(char* rCode)
 {
     setVersion((byte[]) {0x09, 0x06, 0x00, 0x00}, 0x00, (byte[]) {0x01, 0x01, 0x00}, rCode);
-
-
+    
+    
       //pins for pushbuttons
           //fx R
     pinMode(BT_FXR,INPUT);
     digitalWrite(BT_FXR, HIGH);
-          //fx L
+          //fx L          
     pinMode(BT_FXL,INPUT);
     digitalWrite(BT_FXL, HIGH);
           //A
     pinMode(BT_A,INPUT);
-    digitalWrite(BT_A, HIGH);
+    digitalWrite(BT_A, HIGH);  
           //B
     pinMode(BT_B,INPUT);
-    digitalWrite(BT_B, HIGH);
+    digitalWrite(BT_B, HIGH);  
           //C
     pinMode(BT_C,INPUT);
     digitalWrite(BT_C, HIGH);
@@ -37,8 +37,8 @@ IoBoard::IoBoard(char* rCode)
     //service
     pinMode(BT_SVC, INPUT);
     digitalWrite(BT_SVC,HIGH);
-
-
+    
+    
     //pins for volume buttons
     pinMode(VOLR_A, INPUT);
     digitalWrite(VOLR_A,HIGH);
@@ -48,12 +48,12 @@ IoBoard::IoBoard(char* rCode)
     digitalWrite(VOLL_A,HIGH);
     pinMode(VOLL_B, INPUT);
     digitalWrite(VOLL_B,HIGH);
-
+    
     //for key lights
         for(int i = 0;i<7; i++){
       pinMode(lightPin[i], OUTPUT);
     }
-
+    
       //for rgb leds
 	pinMode(LED1_R, OUTPUT);
 	pinMode(LED1_G, OUTPUT);
@@ -64,42 +64,9 @@ IoBoard::IoBoard(char* rCode)
 	pinMode(LED3_R, OUTPUT);
 	pinMode(LED3_G, OUTPUT);
 	pinMode(LED3_B, OUTPUT);
-
-    pinMode(VOLR_A, INPUT);
-    pinMode(VOLR_B, INPUT);
-    pinMode(VOLL_A, INPUT);
-    pinMode(VOLL_B, INPUT);
-
-}
-
-void IoBoard::volLFunc() {
-  // found a low-to-high on channel A ENA脚下降沿中断触发
-  if (digitalRead(VOLL_A) == LOW) {
-    // check channel B to see which way 查询ENB的电平以确认是顺时针还是逆时针旋转
-    if (digitalRead(VOLR_B) == LOW)
-      volL ++;
-  }
-  // found a high-to-low on channel A ENA脚上升沿中断触发
-  else {
-    // check channel B to see which way 查询ENB的电平以确认是顺时针还是逆时针旋转
-    if (digitalRead(VOLR_B) == LOW)
-      volL --;
-  }
-}
-
-void IoBoard::volRFunc() {
-  // found a low-to-high on channel A ENA脚下降沿中断触发
-  if (digitalRead(VOLR_A) == LOW) {
-    // check channel B to see which way 查询ENB的电平以确认是顺时针还是逆时针旋转
-    if (digitalRead(VOLR_B) == LOW)
-      volR ++;
-  }
-  // found a high-to-low on channel A ENA脚上升沿中断触发
-  else {
-    // check channel B to see which way 查询ENB的电平以确认是顺时针还是逆时针旋转
-    if (digitalRead(VOLR_B) == LOW)
-      volR --;
-  }
+  
+  
+    
 }
 
 void IoBoard::init()
@@ -116,15 +83,17 @@ void IoBoard::init()
   aVolLlast=1;
   bVolLlast=1;
   volL=0;
+  
+  
+  
+  
 
-  attachInterrupt(2, ::volLFunc, LOW);  //注册中断0调用函数blinkA
-  attachInterrupt(3, ::volRFunc, LOW);  //注册中断1调用函数blinkB
 }
 
 void IoBoard::update()
 {
    keys = 0x00;
-
+  
   if(!digitalRead(BT_FXR))
     keys |= 0x01;
   if(!digitalRead(BT_FXL))
@@ -138,16 +107,16 @@ void IoBoard::update()
   if(!digitalRead(BT_D))
     keys |= 0x04;
   if(!digitalRead(BT_START))
-    keys |= 0x40;
-
+    keys |= 0x40; 
+    
   test= !digitalRead(BT_TEST);
   svc= !digitalRead(BT_SVC);
-
+    
   //read volume encoders
-
+  
   int aVolR = digitalRead(VOLR_A);
   int bVolR = digitalRead(VOLR_B);
-
+  
   if(aVolR != aVolRlast)//position changed
   {
     if(bVolR != aVolR)
@@ -155,7 +124,7 @@ void IoBoard::update()
     else
       volR--;
   }
-
+  
   if(bVolR != bVolRlast)//position changed
   {
     if(bVolR != aVolR)
@@ -163,14 +132,14 @@ void IoBoard::update()
     else
       volR++;
   }
-
+  
   aVolRlast = aVolR;
   bVolRlast = bVolR;
-
-
+  
+  
   int aVolL = digitalRead(VOLL_A);
   int bVolL = digitalRead(VOLL_B);
-
+  
   if(aVolL != aVolLlast)//position changed
   {
     if(bVolL != aVolL)
@@ -178,7 +147,7 @@ void IoBoard::update()
     else
       volL--;
   }
-
+  
   if(bVolL != bVolLlast)//position changed
   {
     if(bVolL != aVolL)
@@ -186,20 +155,20 @@ void IoBoard::update()
     else
       volL++;
   }
-
+  
   aVolLlast = aVolL;
   bVolLlast = bVolL;
 }
 
 
 short IoBoard::processRequest(byte* request, byte* answer)
-{
+{  
   answer[0] = request[0] | 0x80;        // node id
   answer[1] = request[1];               // type
   answer[2] = request[2];               // command
   answer[3] = request[3];               // paquet id
   answer[4] = 0;                        // data length
-
+ 
   switch (answer[2])                   // switch on the command
   {
     //
@@ -219,15 +188,15 @@ short IoBoard::processRequest(byte* request, byte* answer)
       answer[4] = 1;
       answer[5] = 0x00;
       break;
-
+    
   case 0x13:  //set outputs and get inputs
-
+  
 /*   outputs lights format:
 byte 2 :    10 : start
             20 : A
             40 : B
             80 : C
-byte 3 :    01 : D
+byte 3 :    01 : D  
             02 : FX L
             04 : FX R
 byte 4-6 : wing left up RGB
@@ -242,12 +211,12 @@ byte 19-21 : controller RGB
 //keys lights
     keysLights = (request[5+3] & 0x07) << 4 | (request[5+2] & 0xF0) >> 4;
 
-
+    
     for(int i = 0;i<7; i++){
       digitalWrite(lightPin[i], (keysLights >> i) & 1);
     }
-
-
+    
+    
 //rgb leds
 
     analogWrite(LED1_R,request[5+19]<<1);
@@ -288,39 +257,39 @@ byte 11 : 20 : D
 byte 12 : 80 : ex bt3 (not)
 byte 13 : 80 : ex bt4 (not)
 */
-
+  
       answer[4] = 0x10;
-
+    
     memset(answer+5, 0x00, 0x10);
-
-      answer[9+5] = keys >>3;
+        
+      answer[9+5] = keys >>3;  
       answer[11+5] = keys <<3;
-
+      
       {
       unsigned int volRreal = volR*SDVX_VOL_SENS;
       unsigned int volLreal = volL*SDVX_VOL_SENS;
-
+      
       answer[0+5] = volLreal>>2;
       answer[1+5] = volLreal<<6;
-
+      
       answer[2+5] = volRreal>>2;
       answer[3+5] = volRreal<<6;
-
+ 
       if(test)
            answer[1+5] |= 0x20;
       if(svc)
            answer[1+5] |= 0x10;
-
+            
       }
-
+    
     answer[12+5] = 0x80;
     answer[13+5] = 0x80;
-
-
+    
+      
       break;
-
-
-
+    
+  
+      
     }
 
 

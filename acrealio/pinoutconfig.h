@@ -23,10 +23,10 @@
 #define BT_SVC 53
 
 //input pins for volume encoders (phase A and phase B for each)
-#define VOLR_A 20
-#define VOLR_B 42
-#define VOLL_A 21
-#define VOLL_B 43
+#define VOLR_A 42
+#define VOLR_B 44
+#define VOLL_A 46
+#define VOLL_B 48
 
 //pins for sdvx lights (outputs)
 #define LT_START 40
@@ -79,7 +79,7 @@ COL C  COL B  COL A
 
 
 //pins for card reader 1 RFID Module
-#define R1_DET 2
+#define R1_DET 20
 #define R1_SER Serial1
 
 //pins for card reader 2 keypad (colls ABC, rows 1234)
@@ -93,7 +93,7 @@ COL C  COL B  COL A
 
 
 //pins for card reader 2 RFID Module
-#define R2_DET 3
+#define R2_DET 21
 #define R2_SER Serial2
 
 #endif
