@@ -10,9 +10,12 @@ public:
     void init();
     short processRequest(byte* request, byte* sendBuff);
     void update();
-	
-public: 
- 
+
+    void volLFunc();
+    void volRFunc();
+
+public:
+
 private:
 	//pushbuttons
 	byte keys;
